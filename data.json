@@ -1,0 +1,36 @@
+{
+  "_안내": "예시 데이터입니다. 실제 내용으로 바꿔서 GitHub에 올리면 Vercel에 자동 반영됩니다.",
+  "team": "금형가공팀",
+  "updated": "2026-10-27 08:00",
+  "notice": [
+    "11/1(토) 공장 전체 정전 점검 — 설비 사전 정지 필요",
+    "와이어컷 #2 와이어 재고 3롤 남음, 발주 요청 바람"
+  ],
+  "machines": [
+    { "id": "MCT-1", "name": "MCT #1", "zone": "머시닝", "status": "가동", "job": "A-2410 코어 황삭", "owner": "김가공", "progress": 65 },
+    { "id": "MCT-2", "name": "MCT #2", "zone": "머시닝", "status": "가동", "job": "B-1132 캐비티 정삭", "owner": "이정밀", "progress": 30 },
+    { "id": "MCT-3", "name": "MCT #3", "zone": "머시닝", "status": "대기", "job": "프로그램 대기", "owner": "박공구", "progress": 0 },
+    { "id": "HSM-1", "name": "고속가공기", "zone": "머시닝", "status": "점검", "job": "스핀들 점검", "owner": "설비팀", "progress": 0 },
+    { "id": "EDM-1", "name": "방전 #1", "zone": "방전·와이어", "status": "가동", "job": "A-2410 리브 방전", "owner": "최방전", "progress": 80 },
+    { "id": "WIRE-1", "name": "와이어컷 #1", "zone": "방전·와이어", "status": "가동", "job": "C-0988 슬라이드", "owner": "정와이어", "progress": 45 },
+    { "id": "WIRE-2", "name": "와이어컷 #2", "zone": "방전·와이어", "status": "정지", "job": "와이어 단선", "owner": "정와이어", "progress": 20 },
+    { "id": "GRD-1", "name": "평면연삭", "zone": "연삭·검사", "status": "가동", "job": "B-1132 플레이트", "owner": "한연삭", "progress": 50 },
+    { "id": "CMM-1", "name": "3차원 측정기", "zone": "연삭·검사", "status": "대기", "job": "측정 대기 2건", "owner": "윤검사", "progress": 0 }
+  ],
+  "schedule": [
+    { "time": "08:30", "title": "아침 조회 / 작업 배분", "place": "가공팀 사무실" },
+    { "time": "10:00", "title": "A-2410 고객사 진행 점검 회의", "place": "2층 회의실" },
+    { "time": "14:00", "title": "와이어컷 #2 수리 업체 방문", "place": "가공동" },
+    { "time": "16:30", "title": "내일 야간 작업 계획 확정", "place": "가공팀 사무실" }
+  ],
+  "tasks": [
+    { "title": "A-2410 코어 가공", "mold": "A-2410", "owner": "김가공", "due": "2026-10-28", "state": "진행" },
+    { "title": "A-2410 리브 방전", "mold": "A-2410", "owner": "최방전", "due": "2026-10-28", "state": "진행" },
+    { "title": "B-1132 캐비티 정삭", "mold": "B-1132", "owner": "이정밀", "due": "2026-10-30", "state": "진행" },
+    { "title": "C-0988 슬라이드 와이어", "mold": "C-0988", "owner": "정와이어", "due": "2026-10-27", "state": "진행" },
+    { "title": "D-0571 전극 가공", "mold": "D-0571", "owner": "박공구", "due": "2026-11-03", "state": "대기" },
+    { "title": "B-1132 인서트 측정", "mold": "B-1132", "owner": "윤검사", "due": "2026-10-29", "state": "대기" },
+    { "title": "A-2398 수정 가공", "mold": "A-2398", "owner": "김가공", "due": "2026-10-24", "state": "완료" },
+    { "title": "C-0975 코어 연삭", "mold": "C-0975", "owner": "한연삭", "due": "2026-10-25", "state": "완료" }
+  ]
+}

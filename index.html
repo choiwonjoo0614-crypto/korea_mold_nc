@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>금형가공팀 AI 오피스</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="eyebrow">㈜한국몰드</p>
+      <h1><span id="team">금형가공팀</span> AI 오피스</h1>
+    </div>
+    <div class="clock">
+      <div id="now-date"></div>
+      <div id="now-time" class="time"></div>
+      <div class="muted small">데이터 기준 <span id="updated">-</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary card" aria-label="오늘의 요약">
+      <h2>오늘의 요약</h2>
+      <ul id="summary"></ul>
+    </section>
+
+    <section class="kpis" id="kpis" aria-label="설비 현황 숫자"></section>
+
+    <section class="card floor" aria-label="가공동 배치도">
+      <div class="card-head">
+        <h2>가공동 배치도</h2>
+        <div class="legend">
+          <span class="dot s-가동"></span>가동
+          <span class="dot s-대기"></span>대기
+          <span class="dot s-점검"></span>점검
+          <span class="dot s-정지"></span>정지
+        </div>
+      </div>
+      <div id="zones" class="zones"></div>
+    </section>
+
+    <div class="side">
+      <section class="card" aria-label="오늘 일정">
+        <h2>오늘 일정</h2>
+        <ol id="schedule" class="schedule"></ol>
+      </section>
+      <section class="card" aria-label="공지">
+        <h2>공지</h2>
+        <ul id="notice" class="notice"></ul>
+      </section>
+    </div>
+
+    <section class="card board" aria-label="작업 보드">
+      <div class="card-head">
+        <h2>작업 보드</h2>
+        <input id="search" type="search" placeholder="금형번호·담당자 검색">
+      </div>
+      <div class="cols">
+        <div><h3>대기 <span id="c-대기" class="count"></span></h3><div id="col-대기" class="list"></div></div>
+        <div><h3>진행 <span id="c-진행" class="count"></span></h3><div id="col-진행" class="list"></div></div>
+        <div><h3>완료 <span id="c-완료" class="count"></span></h3><div id="col-완료" class="list"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="muted small">내용 수정은 <code>data.json</code>을 고쳐 GitHub에 올리면 자동 반영됩니다.</footer>
+  <script src="app.js"></script>
+</body>
+</html>
