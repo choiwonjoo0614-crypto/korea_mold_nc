@@ -30,11 +30,12 @@ await sql.transaction((tx) => [
      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
   ...data.notice.map((body, i) => tx`INSERT INTO notices (body, sort) VALUES (${body}, ${i})`),
   ...data.machines.map((m, i) => tx`
-    INSERT INTO machines (id, name, zone, status, job, owner, progress, sort)
-    VALUES (${m.id}, ${m.name}, ${m.zone}, ${m.status}, ${m.job}, ${m.owner}, ${m.progress}, ${i})`),
+    INSERT INTO machines (id, name, building, zone, size, status, job, owner, progress, sort)
+    VALUES (${m.id}, ${m.name}, ${m.building}, ${m.zone}, ${m.size ?? ""}, ${m.status}, ${m.job}, ${m.owner}, ${m.progress}, ${i})`),
+  ...data.staff.map((p, i) => tx`INSERT INTO staff (name, dept, role, sort) VALUES (${p.name}, ${p.dept}, ${p.role}, ${i})`),
   ...data.schedule.map((s) => tx`INSERT INTO schedule (time, title, place) VALUES (${s.time}, ${s.title}, ${s.place})`),
   ...data.tasks.map((t) => tx`
     INSERT INTO tasks (title, mold, owner, due, state)
     VALUES (${t.title}, ${t.mold}, ${t.owner}, ${t.due}, ${t.state})`),
 ]);
-console.log(`예시 데이터 입력 완료: 설비 ${data.machines.length}, 일정 ${data.schedule.length}, 작업 ${data.tasks.length}, 공지 ${data.notice.length}`);
+console.log(`예시 데이터 입력 완료: 설비 ${data.machines.length}, 인원 ${data.staff.length}, 일정 ${data.schedule.length}, 작업 ${data.tasks.length}, 공지 ${data.notice.length}`);

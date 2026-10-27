@@ -15,13 +15,27 @@ CREATE TABLE IF NOT EXISTS notices (
 CREATE TABLE IF NOT EXISTS machines (
   id         text PRIMARY KEY,
   name       text NOT NULL,
+  building   text NOT NULL DEFAULT 'A동' CHECK (building IN ('A동', 'B동')),
   zone       text NOT NULL,
+  size       text NOT NULL DEFAULT '',
   status     text NOT NULL CHECK (status IN ('가동', '대기', '점검', '정지')),
   job        text NOT NULL DEFAULT '',
   owner      text NOT NULL DEFAULT '',
   progress   int  NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
   sort       int  NOT NULL DEFAULT 0,
   updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- 이미 만든 DB 에도 동 구분·크기 컬럼을 추가
+ALTER TABLE machines ADD COLUMN IF NOT EXISTS building text NOT NULL DEFAULT 'A동';
+ALTER TABLE machines ADD COLUMN IF NOT EXISTS size text NOT NULL DEFAULT '';
+
+CREATE TABLE IF NOT EXISTS staff (
+  id   serial PRIMARY KEY,
+  name text NOT NULL,
+  dept text NOT NULL CHECK (dept IN ('관리', 'CAM')),
+  role text NOT NULL DEFAULT '',
+  sort int  NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS schedule (

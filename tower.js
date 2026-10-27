@@ -4,12 +4,14 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 
 const STATUS_COLOR = { 가동: 0x3ccf7f, 대기: 0xf0b429, 점검: 0x6ea2ff, 정지: 0xff5a5a };
-const FLOOR_H = 7;
+const FLOOR_H = 6;
 const WALL_H = 3.4;
 const W = 18, D = 11;
 const FLOORS = [
-  { key: "1F", name: "1F 가공동", color: 0x3b82f6 },
-  { key: "2F", name: "2F 팀 사무실", color: 0xa855f7 },
+  { key: "1F", name: "1F 가공 A동", color: 0x3b82f6, kind: "shop", building: "A동" },
+  { key: "2F", name: "2F 가공 B동", color: 0x22d3ee, kind: "shop", building: "B동" },
+  { key: "3F", name: "3F 관리 사무실", color: 0xa855f7, kind: "office", dept: "관리" },
+  { key: "4F", name: "4F CAM 사무실", color: 0xf472b6, kind: "office", dept: "CAM" },
 ];
 
 const host = document.getElementById("tower");
@@ -159,26 +161,35 @@ const beacons = [];
 let built = false;
 
 function buildMachines(g, machines) {
-  const zones = [...new Set(machines.map((m) => m.zone))];
-  const zoneW = (W - 2) / zones.length;
-  zones.forEach((z, zi) => {
-    const x0 = -W / 2 + 1 + zi * zoneW;
+  // 구역마다 세로 3대까지 한 열, 넘치면 열을 늘린다
+  const COL_W = 2.5, ROW_D = 2.8;
+  const zones = [...new Set(machines.map((m) => m.zone))].map((z) => {
+    const list = machines.filter((m) => m.zone === z);
+    const cols = Math.ceil(list.length / 3);
+    return { z, list, cols, w: cols * COL_W + 0.6 };
+  });
+  let x0 = -zones.reduce((a, b) => a + b.w, 0) / 2;
+  zones.forEach(({ z, list, cols, w: zoneW }) => {
     const zl = label(z, "zone");
     zl.position.set(x0 + zoneW / 2, 0.05, -D / 2 + 0.7);
     g.add(zl);
-    // 구역 바닥선
-    const pad = new THREE.Mesh(new THREE.PlaneGeometry(zoneW - 0.4, D - 2), new THREE.MeshStandardMaterial({ color: 0xc4ccda, roughness: 0.8 }));
+    // 구역 바닥
+    const pad = new THREE.Mesh(new THREE.PlaneGeometry(zoneW - 0.3, D - 2), new THREE.MeshStandardMaterial({ color: 0xc4ccda, roughness: 0.8 }));
     pad.rotation.x = -Math.PI / 2;
     pad.position.set(x0 + zoneW / 2, 0.01, 0.4);
     pad.receiveShadow = true;
     g.add(pad);
-    machines.filter((m) => m.zone === z).forEach((m, k) => {
-      const col = k % 2, row = Math.floor(k / 2);
-      const x = x0 + zoneW * (col === 0 ? 0.3 : 0.72);
-      const zz = -D / 2 + 2.6 + row * 3;
+    list.forEach((m, k) => {
+      const col = Math.floor(k / 3), row = k % 3;
+      const x = x0 + 0.3 + COL_W * (col + 0.45);
+      const zz = -D / 2 + 2.4 + row * ROW_D;
       const color = STATUS_COLOR[m.status] ?? 0x888888;
       const mg = new THREE.Group();
       mg.position.set(x, 0, zz);
+      // 대형(L)·중형(M) 설비는 크게
+      const scale = { L: 1.35, M: 1.18 }[m.size] ?? 1;
+      const big = scale > 1;
+      mg.scale.setScalar(scale);
       const body = box(1.7, 1.5, 1.3, mat.machine);
       body.position.y = 0.75;
       const window_ = box(0.9, 0.6, 0.02, new THREE.MeshStandardMaterial({ color: 0x223355, emissive: m.status === "가동" ? 0x1d4ed8 : 0x000000, emissiveIntensity: 0.6 }));
@@ -200,63 +211,95 @@ function buildMachines(g, machines) {
       g.add(mg);
       if (m.status === "가동" && m.owner) {
         const p = person(m.owner, 0x3b82f6);
-        p.position.set(x + 1.15, 0, zz + 0.6);
+        p.position.set(x + (big ? 1.5 : 1.15), 0, zz + 0.6);
         p.rotation.y = -Math.PI / 2;
         g.add(p);
       }
     });
+    x0 += zoneW;
   });
   g.add(plant(W / 2 - 0.7, D / 2 - 0.7), plant(-W / 2 + 0.7, D / 2 - 0.7));
 }
 
-function buildOffice(g, data) {
-  const busy = new Set(data.machines.filter((m) => m.status === "가동").map((m) => m.owner));
-  const people = [...new Set([...data.machines.map((m) => m.owner), ...data.tasks.map((t) => t.owner)])]
-    .filter((n) => n && !busy.has(n) && !n.endsWith("팀"));
-  // 책상 두 줄
-  const desks = [];
-  for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) desks.push([-W / 2 + 2.6 + c * 2.3, -0.6 + r * 2.6]);
-  desks.forEach(([x, z], i) => {
-    const top = box(1.8, 0.08, 1.0, mat.white);
-    top.position.set(x, 0.75, z);
-    const leg = box(1.6, 0.7, 0.06, mat.dark);
-    leg.position.set(x, 0.38, z - 0.4);
-    const mon = box(0.8, 0.5, 0.05, new THREE.MeshStandardMaterial({ color: 0x0b1220, emissive: 0x2563eb, emissiveIntensity: 0.7 }));
-    mon.position.set(x, 1.1, z - 0.3);
-    const chair = box(0.5, 0.5, 0.5, mat.dark);
-    chair.position.set(x, 0.25, z + 0.85);
-    g.add(top, leg, mon, chair);
-    if (people[i]) {
-      const p = person(people[i], 0xa855f7);
-      p.position.set(x, 0.1, z + 0.85);
-      p.rotation.y = Math.PI;
-      g.add(p);
-    }
+function desk(g, x, z, dual) {
+  const top = box(1.8, 0.08, 1.0, mat.white);
+  top.position.set(x, 0.75, z);
+  const leg = box(1.6, 0.7, 0.06, mat.dark);
+  leg.position.set(x, 0.38, z - 0.4);
+  const chair = box(0.5, 0.5, 0.5, mat.dark);
+  chair.position.set(x, 0.25, z + 0.85);
+  g.add(top, leg, chair);
+  const screen = new THREE.MeshStandardMaterial({ color: 0x0b1220, emissive: dual ? 0xdb2777 : 0x2563eb, emissiveIntensity: 0.7 });
+  (dual ? [-0.42, 0.42] : [0]).forEach((dx) => {
+    const mon = box(dual ? 0.75 : 0.8, 0.5, 0.05, screen);
+    mon.position.set(x + dx, 1.1, z - 0.3);
+    mon.rotation.y = dx * -0.4;
+    g.add(mon);
   });
-  // 회의 테이블
+}
+
+function sitter(g, p, x, z, color) {
+  const fig = person(`${p.name}<small> ${p.role}</small>`, color);
+  fig.position.set(x, 0.1, z + 0.85);
+  fig.rotation.y = Math.PI;
+  g.add(fig);
+}
+
+function wallBoard(g, lines, title, x, z) {
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.1), new THREE.MeshBasicMaterial({ map: textTexture(lines, { title }) }));
+  board.position.set(x, 2.3, z);
+  g.add(board);
+}
+
+// 관리 사무실: 팀장석, 책상, 회의 테이블, 일정 보드, 회사 사인
+function buildAdmin(g, data) {
+  const staff = (data.staff ?? []).filter((p) => p.dept === "관리");
+  const desks = [];
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) desks.push([-W / 2 + 2.6 + c * 2.3, -0.6 + r * 2.6]);
+  desks.forEach(([x, z], i) => {
+    desk(g, x, z, false);
+    if (staff[i]) sitter(g, staff[i], x, z, 0xa855f7);
+  });
+  const tx = W / 2 - 3.4;
   const table = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.1, 40), mat.white);
   table.scale.z = 0.6;
-  table.position.set(W / 2 - 3.2, 0.75, 1.6);
+  table.position.set(tx, 0.75, 1.6);
   table.castShadow = true;
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 0.7, 12), mat.dark);
-  stem.position.set(W / 2 - 3.2, 0.38, 1.6);
+  stem.position.set(tx, 0.38, 1.6);
   g.add(table, stem);
   for (let a = 0; a < 6; a++) {
     const ch = box(0.4, 0.45, 0.4, mat.dark);
-    ch.position.set(W / 2 - 3.2 + Math.cos((a / 6) * Math.PI * 2) * 1.9, 0.22, 1.6 + Math.sin((a / 6) * Math.PI * 2) * 1.2);
+    ch.position.set(tx + Math.cos((a / 6) * Math.PI * 2) * 1.9, 0.22, 1.6 + Math.sin((a / 6) * Math.PI * 2) * 1.2);
     g.add(ch);
   }
-  // 일정 보드
-  const lines = data.schedule.slice(0, 4).map((s) => `${s.time}  ${s.title}`.slice(0, 22));
-  const board = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 2.1), new THREE.MeshBasicMaterial({ map: textTexture(lines, { title: "오늘 일정" }) }));
-  board.position.set(W / 2 - 3.2, 2.6, -D / 2 + 0.05);
-  g.add(board);
-  // 회사 사인
+  wallBoard(g, data.schedule.slice(0, 4).map((s) => `${s.time}  ${s.title}`.slice(0, 22)), "오늘 일정", tx, -D / 2 + 0.05);
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.4), new THREE.MeshBasicMaterial({ map: textTexture([], { w: 512, h: 224, bg: "#f5f7fb", fg: "#1c2a4a", size: 64, title: "KOREA MOLD" }) }));
   sign.rotation.y = Math.PI / 2;
-  sign.position.set(-W / 2 + 0.05, 2.6, -2);
+  sign.position.set(-W / 2 + 0.05, 2.2, -2);
   g.add(sign);
   g.add(plant(W / 2 - 0.7, -D / 2 + 0.7), plant(-W / 2 + 0.7, D / 2 - 0.7), plant(W / 2 - 0.7, D / 2 - 0.7));
+}
+
+// CAM 사무실: 듀얼 모니터 책상, 서버 랙, 대기 작업 보드
+function buildCam(g, data) {
+  const staff = (data.staff ?? []).filter((p) => p.dept === "CAM");
+  const desks = [];
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) desks.push([-W / 2 + 2.6 + c * 2.4, -0.6 + r * 2.6]);
+  desks.forEach(([x, z], i) => {
+    desk(g, x, z, true);
+    if (staff[i]) sitter(g, staff[i], x, z, 0xf472b6);
+  });
+  const rackMat = new THREE.MeshStandardMaterial({ color: 0x111827, emissive: 0x22d3ee, emissiveIntensity: 0.15 });
+  for (let i = 0; i < 3; i++) {
+    const rack = box(0.9, 2.2, 0.9, rackMat);
+    rack.position.set(W / 2 - 1.2, 1.1, -D / 2 + 1.2 + i * 1.1);
+    g.add(rack);
+  }
+  const waiting = data.machines.filter((m) => m.status === "대기").map((m) => `${m.name}  ${m.job}`.slice(0, 22));
+  const queued = data.tasks.filter((t) => t.state === "대기").map((t) => `${t.title}`.slice(0, 22));
+  wallBoard(g, [...waiting, ...queued].slice(0, 4), "프로그램 대기", 1.5, -D / 2 + 0.05);
+  g.add(plant(-W / 2 + 0.7, D / 2 - 0.7), plant(W / 2 - 0.7, D / 2 - 0.7));
 }
 
 function build(data) {
@@ -267,16 +310,20 @@ function build(data) {
     floors[f.key] = g;
     scene.add(g);
   });
-  buildMachines(floors["1F"], data.machines);
-  buildOffice(floors["2F"], data);
+  for (const f of FLOORS) {
+    if (f.kind === "shop") buildMachines(floors[f.key], data.machines.filter((m) => (m.building ?? "A동") === f.building));
+    else if (f.dept === "관리") buildAdmin(floors[f.key], data);
+    else buildCam(floors[f.key], data);
+  }
 }
 
 // 층 선택
 const views = {
-  전체: { show: ["1F", "2F"], target: [0, FLOOR_H * 0.45, 0], pos: [21, 25, 21] },
-  "1F": { show: ["1F"], target: [0, 0.5, 1], pos: [10, 19, 17] },
-  "2F": { show: ["2F"], target: [0, FLOOR_H + 0.5, 1], pos: [10, FLOOR_H + 19, 17] },
+  전체: { show: FLOORS.map((f) => f.key), target: [0, FLOOR_H * 1.7, 0], pos: [34, 42, 34] },
 };
+FLOORS.forEach((f, i) => {
+  views[f.key] = { show: [f.key], target: [0, i * FLOOR_H + 0.5, 1], pos: [10, i * FLOOR_H + 19, 17] };
+});
 let tween = null;
 let current = "전체";
 // 화면이 좁으면 카메라를 뒤로 물려 건물이 잘리지 않게 한다

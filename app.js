@@ -60,12 +60,13 @@ function renderKpis() {
 }
 
 function renderZones() {
-  const zones = [...new Set(data.machines.map((x) => x.zone))];
+  const key = (x) => `${x.building ?? "A동"} · ${x.zone}`;
+  const zones = [...new Set(data.machines.map(key))].sort();
   $("zones").innerHTML = zones.map((z) => `
     <div class="zone">
       <div class="zone-name">${esc(z)}</div>
       <div class="machines">
-        ${data.machines.filter((x) => x.zone === z).map((x) => `
+        ${data.machines.filter((x) => key(x) === z).map((x) => `
           <div class="machine st-${esc(x.status)}" title="${esc(x.id)}">
             <div class="row"><span class="name">${esc(x.name)}</span><span class="badge">${esc(x.status)}</span></div>
             <div class="job">${esc(x.job)}</div>

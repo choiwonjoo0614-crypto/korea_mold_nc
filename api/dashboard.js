@@ -7,10 +7,11 @@ export async function GET() {
   }
   const sql = neon(process.env.DATABASE_URL);
   try {
-    const [meta, notices, machines, schedule, tasks, updated] = await Promise.all([
+    const [meta, notices, machines, staff, schedule, tasks, updated] = await Promise.all([
       sql`SELECT key, value FROM meta`,
       sql`SELECT body FROM notices ORDER BY sort, id`,
-      sql`SELECT id, name, zone, status, job, owner, progress FROM machines ORDER BY sort, id`,
+      sql`SELECT id, name, building, zone, size, status, job, owner, progress FROM machines ORDER BY building, sort, id`,
+      sql`SELECT name, dept, role FROM staff ORDER BY sort, id`,
       sql`SELECT time, title, place FROM schedule
           WHERE day = (now() AT TIME ZONE 'Asia/Seoul')::date ORDER BY time`,
       sql`SELECT id, title, mold, owner, to_char(due, 'YYYY-MM-DD') AS due, state FROM tasks ORDER BY due, id`,
@@ -26,6 +27,7 @@ export async function GET() {
         updated: updated[0]?.at ?? "-",
         notice: notices.map((r) => r.body),
         machines,
+        staff,
         schedule,
         tasks,
       },
