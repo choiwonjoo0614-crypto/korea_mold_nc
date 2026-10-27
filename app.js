@@ -124,6 +124,8 @@ async function load() {
     return;
   }
   data = got.data;
+  window.officeData = data;
+  window.dispatchEvent(new CustomEvent("office:data", { detail: data }));
   $("source").textContent = got.source === "data.json" ? " · 예시 데이터" : "";
   $("team").textContent = data.team;
   $("updated").textContent = data.updated;

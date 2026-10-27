@@ -21,6 +21,20 @@
     </div>
   </header>
 
+  <section class="tower-wrap" aria-label="3D 타워">
+    <div id="tower" class="overview"></div>
+    <div class="tower-ui">
+      <div class="pills">
+        <button data-view="전체" class="pill on">전체 타워</button>
+        <button data-view="2F" class="pill"><span class="dot" style="background:#a855f7"></span>2F 팀 사무실</button>
+        <button data-view="1F" class="pill"><span class="dot" style="background:#3b82f6"></span>1F 가공동</button>
+        <label class="pill"><input id="auto-rotate" type="checkbox"> 자동 회전</label>
+      </div>
+      <div id="tower-info" class="tower-info" hidden></div>
+    </div>
+    <p class="tower-hint">드래그로 회전 · 휠로 확대 · 설비를 누르면 상세 정보</p>
+  </section>
+
   <main>
     <section class="summary card" aria-label="오늘의 요약">
       <h2>오늘의 요약</h2>
@@ -31,7 +45,7 @@
 
     <section class="card floor" aria-label="가공동 배치도">
       <div class="card-head">
-        <h2>가공동 배치도</h2>
+        <h2>설비 상세</h2>
         <div class="legend">
           <span class="dot s-가동"></span>가동
           <span class="dot s-대기"></span>대기
@@ -67,6 +81,15 @@
   </main>
 
   <footer class="muted small">데이터는 Neon 데이터베이스에서 불러옵니다.</footer>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="tower.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
