@@ -1,0 +1,11 @@
+{
+  "name": "korea-mold-nc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:setup": "node --env-file=.env.local scripts/setup-db.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}

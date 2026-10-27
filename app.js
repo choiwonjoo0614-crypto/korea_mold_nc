@@ -106,14 +106,25 @@ function renderBoard() {
   }
 }
 
+// DB(API)를 먼저 읽고, 안 되면 data.json 예시 데이터를 쓴다
+async function fetchData() {
+  for (const url of ["/api/dashboard", "data.json"]) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (res.ok) return { data: await res.json(), source: url };
+    } catch (e) {}
+  }
+  return null;
+}
+
 async function load() {
-  try {
-    const res = await fetch("data.json", { cache: "no-store" });
-    data = await res.json();
-  } catch (e) {
-    $("summary").innerHTML = `<li>data.json을 불러오지 못했습니다.</li>`;
+  const got = await fetchData();
+  if (!got) {
+    $("summary").innerHTML = `<li>데이터를 불러오지 못했습니다.</li>`;
     return;
   }
+  data = got.data;
+  $("source").textContent = got.source === "data.json" ? " · 예시 데이터" : "";
   $("team").textContent = data.team;
   $("updated").textContent = data.updated;
   renderSummary();
