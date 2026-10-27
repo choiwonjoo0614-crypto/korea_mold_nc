@@ -33,7 +33,7 @@ ALTER TABLE machines ADD COLUMN IF NOT EXISTS size text NOT NULL DEFAULT '';
 CREATE TABLE IF NOT EXISTS staff (
   id   serial PRIMARY KEY,
   name text NOT NULL,
-  dept text NOT NULL CHECK (dept IN ('관리', 'CAM')),
+  dept text NOT NULL CHECK (dept IN ('관리', 'CAM', 'A동', 'B동')),
   role text NOT NULL DEFAULT '',
   sort int  NOT NULL DEFAULT 0
 );
